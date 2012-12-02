@@ -1,0 +1,2 @@
+var demo={one:{},two:{},three:{}};(function(a){a.add=function(c,a){var b;if(typeof c==="number"&&typeof a==="number")b=c+a;else if(typeof c==="object"&&typeof a==="object"){for(b in a)c[b]=a[b];b=c}else throw"The parameters type is wrong.";return b}})(demo.one);(function(a){a.isArray=function(a){return Object.prototype.toString.call(a)==="[object Array]"}})(demo.two);
+(function(a){var b;a.person=function(a){this.name=a};b=a.person.fn=a.person.prototype,a=b;a.getName=function(){return this.name};a.setName=function(a){this.name=a;return this}}).call(this,demo.three);

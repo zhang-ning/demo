@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="Demo" default="Usage" basedir=".">
+	<description>
+      Simple example build file
+  </description>
+  <!-- Show the help usage , how to use it. -->
+  <target name="Usage">
+		<java classname="org.apache.tools.ant.Main">
+		   <arg value="-projecthelp"/>
+		   <arg value="-quiet"/>
+		</java>
+  </target>
+ 	<!-- Sets various properties needed during the build. -->
+  <target name="set.properties">
+    <!-- folder names -->
+    <property name="build.dir" value="${basedir}/build"/>
+    <property name="tools.dir" value="${basedir}/tools"/>
+    <property name="doc.dir" value="${basedir}/doc"/>
+    <property name="js.dir" value="${basedir}/src"/>
+    <property name="css.dir" value="${basedir}/css"/>
+    
+    <property name="demo.file" value="${build.dir}/demo.src.js"/>
+    <property name="demo.minifile" value="${build.dir}/demo.mini"/>
+    
+    <property name="projectName" value="demo"/>
+  
+  
+    <!-- jsLint -->
+    <property name="jslint4java.dir" value="${tools.dir}/jslint4java"/>
+    <property name="jslint4java.jar" value="${jslint4java.dir}/jslint4java-2.0.0.jar"/>
+    <taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask" classpath="${jslint4java.jar}"/>
+    
+    <!-- jsdoc -->
+    <property name="jsdoc.dir" value="${tools.dir}/jsdoc-master"/>
+    <property name="jsdoc.jar" location="${jsdoc.dir}/lib/js.jar"/>
+
+    <!-- google closure compiler -->
+    <property name="gcc.dir" value="${tools.dir}/google-closure-compiler"/>
+    <property name="gcc.jar" location="${gcc.dir}/compiler.jar"/>
+
+    <!-- YUI compressor -->
+    <property name="yuicomp.dir" value="${tools.dir}/yui-compressor"/>
+    <property name="yuicomp.jar" location="${yuicomp.dir}/yuicompressor-2.4.6.jar"/>
+    <property name="yuicomp.output.name" value="${projectName}.min-yui.js"/>
+
+    <!-- google js-test-driver -->
+    <property name="jstestdriver.dir" value="${tools.dir}/js-test-driver"/>
+    <property name="jstestdriver.jar" location="${jstestdriver.dir}/JsTestDriver-1.3.3d.jar"/>
+    
+    <filelist id="demo.files" dir="${js.dir}">
+      <file name="core.js"/>
+      <file name="demoOne.js"/>
+      <file name="demoTwo.js"/>
+      <file name="demoThree.js"/>
+    </filelist>
+  </target>
+  
+	<target name="clean" depends="set.properties">
+    <mkdir dir="${build.dir}"/>
+    <delete includeemptydirs="true">
+        <fileset dir="${build.dir}" includes="**/*"/>
+    </delete>
+    <mkdir dir="${doc.dir}"/>
+    <delete includeemptydirs="true">
+        <fileset dir="${doc.dir}" includes="**/*"/>
+    </delete>
+  </target>
+  
+	<!-- Runs google closure compiler and yui compressor on src. -->
+  <target name="compile">   
+    <echo message="Minifying ${param.src}"/>
+    <java jar="${gcc.jar}" fork="true">
+        <arg value="--compilation_level"/>
+        <arg value="SIMPLE_OPTIMIZATIONS"/>
+        <arg value="--js"/>
+        <arg value="${param.src}"/>
+        <arg value="--js_output_file"/>
+        <arg value="${param.out}.gcc.js"/>
+    </java>
+    <java jar="${yuicomp.jar}" fork="true">
+        <arg value="--type"/>
+        <arg value="js"/>
+        <arg value="-o"/>
+        <arg value="${param.out}.yui.js"/>
+        <arg value="${param.src}"/>
+    </java>
+  </target>
+  
+  <target name="doc">
+    <echo message="Generate Doc ${param.src}"/>
+    <echo message="${build.dir}"/>
+    <java classpath="${jsdoc.jar}" classname="org.mozilla.javascript.tools.shell.Main">
+      <arg value="-modules"/>
+      <arg value="file:/C:/Users/zhangning/Desktop/presentation/tools/jsdoc-master/node_modules"/>
+      <arg value="-modules"/>
+      <arg value="file:/C:/Users/zhangning/Desktop/presentation/tools/jsdoc-master/rhino_modules"/>
+      <arg value="-modules"/>
+      <arg value="C:/Users/zhangning/Desktop/presentation/tools/jsdoc-master/"/>
+      <arg value="C:/Users/zhangning/Desktop/presentation/tools/jsdoc-master//jsdoc.js"/>
+      <arg value="${param.src}"/>
+      <arg value="-d"/>
+      <arg value="${param.out}"/>
+      <arg value="-dirname=C:/Users/zhangning/Desktop/presentation/tools/jsdoc-master"/>
+    </java>
+  </target>
+	
+	
+	<!-- Runs minifiers on source code. -->
+  <target name="minify" depends="assemble" description="merge all source into one file and minify.">
+    <antcall target="compile">
+      <param name="param.src" value="${demo.file}"/>
+      <param name="param.out" value="${demo.minifile}"/>
+    </antcall>
+    <antcall target="doc">
+      <param name="param.src" value="${demo.file}"/>
+      <param name="param.out" value="${doc.dir}"/>
+    </antcall>
+  </target>
+  
+	<!-- Assembles the source parts into one file. -->
+  <target name="assemble" depends="clean" description="merge all source into one file.">
+  	<concat destfile="${demo.file}">
+     <filelist refid="demo.files"/>
+    </concat>
+  </target>
+  
+</project>
